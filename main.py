@@ -45,14 +45,16 @@ class CreateApp:
 
     # read text file
     def read_file(self):
+        self.dic_list.clear()
         count = 0
         print("\nUsing for loop")
 
         with open("task_list.txt") as fp:
             for line in fp:
                 count += 1
-                #TODO Need to add code to split line using '|' push into list and dictionary
+                self.dic_list[count] = line.strip().split("|")
                 print("Line{}: {}".format(count, line.strip()))
+        print("Line", self.dic_list)
 
     # Add new task
     def add_new_task(self):
@@ -60,29 +62,62 @@ class CreateApp:
         taskDate = self.date_entry_val.get()
         taskDescription = self.task_view_txt.get("1.0",END)
 
-        line = taskTitle + "|" + taskDate + "|" + taskDescription + "\n"
+        line = taskTitle + "|" + taskDate + "|" + taskDescription
         with open('task_list.txt', 'a') as f:
             f.write(line)
 
         self.clear_field()
+        self.read_file()
+        self.display_task_in_treeview()
 
+    # Update text file after update action was taking on the GUI app
+    def update_text_file(self):
+        list_items = []
+        for key, value in self.dic_list.items():
+            line = f"{value[0].strip()}|{value[1].strip()}|{value[2].strip()}\n"
+            list_items.append(line)
 
+        with open('task_list.txt', 'w') as f:
+            for i in list_items:
+                f.write(i)
+
+        self.clear_field()
+
+    # Display selected value from tree view in upper fields
     def get_listview_value(self, event):
         self.clear_field()
         curItem = self.task_list.focus()
         listVal = self.task_list.item(curItem)
 
+        self.list_id = listVal['text']
         self.title_entry_var.set(listVal['values'][1])
         self.date_entry_val.set(listVal['values'][0])
         self.task_view_txt.insert('1.0', listVal['values'][2])
 
+    # Update task
     def update_task(self):
-        pass
+        taskTitle = self.title_entry_var.get()
+        taskDate = self.date_entry_val.get()
+        taskDescription = self.task_view_txt.get("1.0",END)
 
+        self.dic_list[self.list_id][0] = taskTitle
+        self.dic_list[self.list_id][1] = taskDate
+        self.dic_list[self.list_id][2] = taskDescription
+
+        self.update_text_file()
+        self.display_task_in_treeview()
+
+    # Delete task
     def delete_task(self):
-        pass
+        self.dic_list.pop(self.list_id, None)
+        self.update_text_file()
+        self.read_file()
+        self.display_task_in_treeview()
 
     def __init__(self):
+        self.list_id = 0
+        self.dic_list = {}
+        self.read_file()
         style = ttk.Style()
         style.theme_use('classic')  # Any style other than aqua.
         style.configure('TFrame', background='white')
@@ -140,12 +175,14 @@ class CreateApp:
         self.task_list.grid(column=0, row=7, columnspan=3, sticky=(W, E))
 
         # Insert data in list view
-        self.task_list.insert("", "end", text="1", values=("23-Jun-17 11:05", "Name Gathering", "Text"))
-        self.task_list.insert("", "end", text="2", values=("24-Jun-17 11:25", "ATM E-dm", "1 KB"))
+        self.display_task_in_treeview()
+
+    # Display all task in Tree View
+    def display_task_in_treeview(self):
+        self.task_list.delete(*self.task_list.get_children())
+        for key, value in self.dic_list.items():
+            self.task_list.insert("", "end", text=key, values=(value[1], value[0], value[2]))
         self.task_list.bind("<<TreeviewSelect>>", self.get_listview_value)
-
-
-
 
 
 
