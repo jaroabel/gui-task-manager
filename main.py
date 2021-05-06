@@ -37,7 +37,13 @@ class CreateApp:
         my_date = self.cal.selection_get()
         self.date_entry_val.set(my_date)
 
+    # Clear title, date, comment fields
+    def clear_field(self):
+        self.title_entry_var.set("")
+        self.date_entry_val.set("")
+        self.task_view_txt.delete('1.0', END)
 
+    # read text file
     def read_file(self):
         count = 0
         print("\nUsing for loop")
@@ -45,6 +51,7 @@ class CreateApp:
         with open("task_list.txt") as fp:
             for line in fp:
                 count += 1
+                #TODO Need to add code to split line using '|' push into list and dictionary
                 print("Line{}: {}".format(count, line.strip()))
 
     # Add new task
@@ -57,9 +64,17 @@ class CreateApp:
         with open('task_list.txt', 'a') as f:
             f.write(line)
 
-        self.title_entry_var.set("")
-        self.date_entry_val.set("")
-        self.task_view_txt.delete('1.0', END)
+        self.clear_field()
+
+
+    def get_listview_value(self, event):
+        self.clear_field()
+        curItem = self.task_list.focus()
+        listVal = self.task_list.item(curItem)
+
+        self.title_entry_var.set(listVal['values'][1])
+        self.date_entry_val.set(listVal['values'][0])
+        self.task_view_txt.insert('1.0', listVal['values'][2])
 
     def update_task(self):
         pass
@@ -110,23 +125,24 @@ class CreateApp:
 
         # Task list
         ttk.Label(frame, text="Task List", background="white").grid(column=0, row=6, sticky=(W, E))
-        task_list = ttk.Treeview(frame)
-        task_list["columns"] = ("one", "two", "three")
-        task_list.column("#0", width=3, minwidth=3, stretch=YES)
-        task_list.column("one", width=5, minwidth=5, stretch=YES)
-        task_list.column("two", width=15, minwidth=15)
-        task_list.column("three", width=20, minwidth=20, stretch=YES)
+        self.task_list = ttk.Treeview(frame)
+        self.task_list["columns"] = ("one", "two", "three")
+        self.task_list.column("#0", width=3, minwidth=3, stretch=YES)
+        self.task_list.column("one", width=5, minwidth=5, stretch=YES)
+        self.task_list.column("two", width=15, minwidth=15)
+        self.task_list.column("three", width=20, minwidth=20, stretch=YES)
 
-        task_list.heading("#0", text="#", anchor=W)
-        task_list.heading("one", text="Date", anchor=W)
-        task_list.heading("two", text="Name", anchor=W)
-        task_list.heading("three", text="Task", anchor=W)
+        self.task_list.heading("#0", text="#", anchor=W)
+        self.task_list.heading("one", text="Date", anchor=W)
+        self.task_list.heading("two", text="Name", anchor=W)
+        self.task_list.heading("three", text="Task", anchor=W)
 
-        task_list.grid(column=0, row=7, columnspan=3, sticky=(W, E))
+        self.task_list.grid(column=0, row=7, columnspan=3, sticky=(W, E))
 
         # Insert data in list view
-        task_list.insert("", "end", text="1", values=("23-Jun-17 11:05", "Name Gathering", "Text"))
-        task_list.insert("", "end", text="2", values=("24-Jun-17 11:25", "ATM E-dm", "1 KB"))
+        self.task_list.insert("", "end", text="1", values=("23-Jun-17 11:05", "Name Gathering", "Text"))
+        self.task_list.insert("", "end", text="2", values=("24-Jun-17 11:25", "ATM E-dm", "1 KB"))
+        self.task_list.bind("<<TreeviewSelect>>", self.get_listview_value)
 
 
 
